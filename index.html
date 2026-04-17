@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="MedTrace - Your Smart Health Companion. Track medications, set reminders, monitor family health, and get AI-powered health suggestions.">
+  <title>MedTrace – Smart Health Companion</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💊</text></svg>">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- NOTIFICATION TOAST -->
+  <div id="notif" class="notif">💊 Time to take your medicine!</div>
+
+  <!-- ==================== LOGIN SCREEN ==================== -->
+  <div id="loginScreen" class="screen active">
+    <div class="login-box">
+      <div class="login-logo">
+        <div class="logo-icon">💊</div>
+        <h1>MedTrace</h1>
+        <p>Your Smart Health Companion</p>
+      </div>
+      <input class="inp" id="loginEmail" placeholder="Email address" type="email" value="user@meditrace.com">
+      <input class="inp" id="loginPassword" placeholder="Password" type="password" value="password">
+      <button class="btn-primary" id="loginBtn" onclick="doLogin()">Sign In</button>
+      <p class="login-footer">Don't have an account? <span class="signup-link">Sign Up</span></p>
+    </div>
+  </div>
+
+  <!-- ==================== MAIN APP ==================== -->
+  <div id="appRoot" style="display:none">
+    <div class="app">
+
+      <!-- HEADER -->
+      <div class="header">
+        <span class="header-logo">MedTrace</span>
+        <div class="header-right">
+          <button class="icon-btn" id="notifBtn" onclick="showNotif('💊 Crocin due in 30 minutes!')">🔔</button>
+          <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()"></button>
+        </div>
+      </div>
+
+      <!-- ========== HOME SCREEN ========== -->
+      <div id="homeScreen" class="screen active">
+        <div class="greeting">
+          <h2 id="greetText">Good Morning 👋</h2>
+          <p id="greetName">Welcome back, User</p>
+        </div>
+
+        <!-- Health Score Ring -->
+        <div class="section">
+          <div class="health-ring">
+            <div class="ring-wrap">
+              <svg width="80" height="80" viewBox="0 0 80 80">
+                <circle cx="40" cy="40" r="34" fill="none" stroke="var(--pill)" stroke-width="8"/>
+                <circle id="healthRingCircle" cx="40" cy="40" r="34" fill="none" stroke="var(--accent)" stroke-width="8" stroke-linecap="round"
+                  stroke-dasharray="213.6" stroke-dashoffset="53.4"/>
+              </svg>
+              <div class="ring-text">
+                <span class="ring-score">75</span>
+                <span class="ring-label">Health</span>
+              </div>
+            </div>
+            <div class="ring-info">
+              <h4>Good Health Score</h4>
+              <p>Take 2 more meds today<br>to improve your score</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Stat Cards -->
+        <div class="stat-row">
+          <div class="stat-card" id="statMeds" onclick="switchTab('meds')">
+            <div class="emoji">💊</div>
+            <div class="val" id="medCount">5</div>
+            <div class="label">Medications</div>
+          </div>
+          <div class="stat-card" id="statSymptoms" onclick="switchTab('symptoms')">
+            <div class="emoji">🩺</div>
+            <div class="val" id="sympCount">3</div>
+            <div class="label">Symptoms</div>
+          </div>
+          <div class="stat-card" id="statFamily" onclick="switchTab('family')">
+            <div class="emoji">👨‍👩‍👧</div>
+            <div class="val" id="famCount">4</div>
+            <div class="label">Family</div>
+          </div>
+        </div>
+
+        <!-- Today's Medications -->
+        <div class="section">
+          <div class="section-header">
+            <span class="section-title">Today's Medications</span>
+            <span class="see-all" onclick="switchTab('meds')">See all</span>
+          </div>
+          <div class="med-list" id="homeMedList"></div>
+        </div>
+
+        <!-- Health Chart -->
+        <div class="section">
+          <div class="section-header">
+            <span class="section-title">Health Chart</span>
+            <span></span>
+          </div>
+          <div class="chart-card">
+            <div class="chart-tabs">
+              <button class="chart-tab active" id="chartTabWeek" onclick="switchChart('week',this)">Week</button>
+              <button class="chart-tab" id="chartTabMonth" onclick="switchChart('month',this)">Month</button>
+              <button class="chart-tab" id="chartTabMood" onclick="switchChart('mood',this)">Mood</button>
+            </div>
+            <canvas id="mainChart" height="160"></canvas>
+          </div>
+        </div>
+
+        <!-- Next Reminder -->
+        <div class="section">
+          <div class="section-header">
+            <span class="section-title">Next Reminder</span>
+            <span class="see-all" onclick="switchTab('reminders')">All</span>
+          </div>
+          <div class="next-reminder-card">
+            <div class="reminder-icon">⏰</div>
+            <div class="reminder-details">
+              <div class="name" id="nextRemName">Crocin 500mg</div>
+              <div class="time" id="nextRemTime">11:00 AM · Daily</div>
+            </div>
+            <button class="btn-sm" id="takeNextBtn" onclick="showNotif('✅ Marked as taken!')">Take</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========== MEDICATIONS SCREEN ========== -->
+      <div id="medsScreen" class="screen">
+        <div class="greeting">
+          <h2>Medications 💊</h2>
+          <p>Manage your daily medicines</p>
+        </div>
+        <div class="section">
+          <div class="section-header">
+            <span class="section-title">Today</span>
+          </div>
+          <div class="med-list" id="medListFull"></div>
+          <div style="margin-top:14px">
+            <button class="btn-primary" id="addMedFromList" onclick="openAddMedModal()">+ Add Medication</button>
+          </div>
+        </div>
+        <div class="section">
+          <div class="section-header">
+            <span class="section-title">Allergies</span>
+          </div>
+          <div class="allergy-list" id="allergyList"></div>
+        </div>
+        <div class="section">
+          <div class="section-header">
+            <span class="section-title">Log Symptoms</span>
+          </div>
+          <div class="symptom-chips" id="symptomChips"></div>
+          <button class="btn-sm" style="margin-top:12px" id="logSymptomsBtn" onclick="logSymptoms()">Log Selected</button>
+        </div>
+      </div>
+
+      <!-- ========== VOICE & AI SCREEN ========== -->
+      <div id="voiceScreen" class="screen">
+        <div class="greeting">
+          <h2>Voice & AI 🎤</h2>
+          <p>Speak or type to get health suggestions</p>
+        </div>
+        <div class="section">
+          <button class="voice-btn" id="voiceBtn" onclick="startVoice()">
+            <div class="mic-pulse" id="micPulse">🎤</div>
+            <span id="voiceBtnText">Tap to Speak</span>
+          </button>
+          <div id="voiceResult" class="voice-result" style="display:none"></div>
+          <div id="aiResponse" class="ai-response" style="display:none"></div>
+        </div>
+        <div class="section">
+          <div class="section-header">
+            <span class="section-title">Or type your query</span>
+          </div>
+          <div style="display:flex;gap:10px">
+            <input class="inp-sm" id="aiInput" placeholder="e.g. I have a headache...">
+            <button class="btn-sm" id="askAiBtn" onclick="getAISuggestion()">Ask AI</button>
+          </div>
+        </div>
+        <div class="section">
+          <div class="section-header">
+            <span class="section-title">Recent Queries</span>
+          </div>
+          <div class="reminder-list" id="aiHistory"></div>
+        </div>
+      </div>
+
+      <!-- ========== REMINDERS SCREEN ========== -->
+      <div id="remindersScreen" class="screen">
+        <div class="greeting">
+          <h2>Reminders 🔔</h2>
+          <p>Smart medicine alerts</p>
+        </div>
+        <div class="section">
+          <div class="reminder-list" id="reminderList"></div>
+          <div class="add-reminder">
+            <h4>Add Reminder</h4>
+            <input class="inp-sm" id="remMed" placeholder="Medicine name">
+            <div class="row">
+              <input class="inp-sm" id="remTime" type="time" value="08:00">
+              <select class="inp-sm" id="remFreq">
+                <option>Daily</option>
+                <option>Twice daily</option>
+                <option>Weekly</option>
+                <option>As needed</option>
+              </select>
+            </div>
+            <button class="btn-sm" id="setReminderBtn" onclick="addReminder()">Set Reminder</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========== FAMILY SCREEN ========== -->
+      <div id="familyScreen" class="screen">
+        <div class="greeting">
+          <h2>Family Space 👨‍👩‍👧</h2>
+          <p>Monitor your family's health</p>
+        </div>
+        <div class="section">
+          <div class="family-grid" id="familyGrid"></div>
+        </div>
+        <div class="section">
+          <div class="section-header">
+            <span class="section-title">Family Health Overview</span>
+          </div>
+          <div class="chart-card">
+            <canvas id="familyChart" height="160"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========== PROFILE SCREEN ========== -->
+      <div id="profileScreen" class="screen">
+        <div class="greeting">
+          <h2>Profile 👤</h2>
+        </div>
+        <div class="section">
+          <div class="profile-card">
+            <div class="profile-avatar">👤</div>
+            <div class="profile-name" id="profileName">User</div>
+            <div class="profile-email" id="profileEmail">user@meditrace.com</div>
+            <div class="profile-info">
+              <div class="info-item"><div class="info-val">25</div><div class="info-label">Age</div></div>
+              <div class="info-item"><div class="info-val">72kg</div><div class="info-label">Weight</div></div>
+              <div class="info-item"><div class="info-val">A+</div><div class="info-label">Blood</div></div>
+            </div>
+          </div>
+          <div class="settings-list">
+            <div class="setting-item" id="settingDarkMode" onclick="toggleTheme()">
+              <div class="set-icon" style="background:#eef2ff">🌙</div>
+              <div class="set-text">Dark Mode</div>
+              <div class="set-arrow" id="darkLabel">Off</div>
+            </div>
+            <div class="setting-item" id="settingLanguage" onclick="showNotif('🌐 Language changed to Hindi!')">
+              <div class="set-icon" style="background:#fef3c7">🌐</div>
+              <div class="set-text">Language</div>
+              <div class="set-arrow">English</div>
+            </div>
+            <div class="setting-item" id="settingExport" onclick="showNotif('📤 Health report exported!')">
+              <div class="set-icon" style="background:#d1fae5">📤</div>
+              <div class="set-text">Export Health Report</div>
+              <div class="set-arrow">›</div>
+            </div>
+            <div class="setting-item" id="settingEmergency" onclick="showNotif('📞 Emergency contacts saved!')">
+              <div class="set-icon" style="background:#fee2e2">🚨</div>
+              <div class="set-text">Emergency Contacts</div>
+              <div class="set-arrow">›</div>
+            </div>
+            <div class="setting-item" id="settingLogout" onclick="doLogout()">
+              <div class="set-icon" style="background:#fee2e2">🚪</div>
+              <div class="set-text" style="color:#ef4444">Logout</div>
+              <div class="set-arrow">›</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- end .app -->
+
+    <!-- BOTTOM NAVIGATION -->
+    <div class="bottom-nav">
+      <div class="nav-item active" onclick="switchTab('home')" id="nav-home">
+        <div class="nav-icon">🏠</div>
+        <div class="nav-label">Home</div>
+      </div>
+      <div class="nav-item" onclick="switchTab('meds')" id="nav-meds">
+        <div class="nav-icon">💊</div>
+        <div class="nav-label">Meds</div>
+      </div>
+      <div class="nav-add" id="navAddBtn" onclick="openAddMedModal()">➕</div>
+      <div class="nav-item" onclick="switchTab('reminders')" id="nav-reminders">
+        <div class="nav-icon">🔔</div>
+        <div class="nav-label">Reminders</div>
+      </div>
+      <div class="nav-item" onclick="switchTab('profile')" id="nav-profile">
+        <div class="nav-icon">👤</div>
+        <div class="nav-label">Profile</div>
+      </div>
+    </div>
+
+    <!-- ADD MEDICATION MODAL -->
+    <div class="modal-bg" id="addMedModal">
+      <div class="modal">
+        <button class="modal-close" onclick="closeModal('addMedModal')">✕</button>
+        <h3>Add Medication</h3>
+        <input class="inp-sm" id="newMedName" placeholder="Medicine name" style="width:100%;margin-bottom:10px">
+        <div class="row" style="margin-bottom:10px">
+          <input class="inp-sm" id="newMedDose" placeholder="Dosage (e.g. 500mg)">
+          <input class="inp-sm" id="newMedTime" type="time" value="09:00">
+        </div>
+        <select class="inp-sm" id="newMedFreq" style="width:100%;margin-bottom:14px">
+          <option>Daily</option>
+          <option>Twice daily</option>
+          <option>Weekly</option>
+          <option>As needed</option>
+        </select>
+        <button class="btn-primary" id="addMedSubmit" onclick="addMed()">Add Medicine</button>
+      </div>
+    </div>
+
+    <!-- FAMILY DETAIL MODAL -->
+    <div class="modal-bg" id="famModal">
+      <div class="modal">
+        <button class="modal-close" onclick="closeModal('famModal')">✕</button>
+        <h3 id="famModalTitle">Family Member</h3>
+        <div id="famModalContent"></div>
+      </div>
+    </div>
+
+  </div><!-- end appRoot -->
+
+  <!-- SCRIPTS -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
